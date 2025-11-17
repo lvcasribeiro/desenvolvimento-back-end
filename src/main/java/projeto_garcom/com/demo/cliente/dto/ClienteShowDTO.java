@@ -1,0 +1,10 @@
+package projeto_garcom.com.demo.cliente.dto;
+
+import java.time.LocalDateTime;
+
+public record ClienteShowDTO(
+        Long id,
+        String nome,
+        LocalDateTime horaChegada,
+        LocalDateTime horaSaida
+) {}
