@@ -5,7 +5,6 @@ import org.mapstruct.MappingTarget;
 import projeto_garcom.com.demo.usuario.dto.UsuarioDTO;
 import projeto_garcom.com.demo.usuario.dto.UsuarioRequestDTO;
 import projeto_garcom.com.demo.usuario.dto.UsuarioShowDTO;
-import projeto_garcom.com.demo.usuario.dto.UsuarioUpdateDTO;
 
 @Mapper(componentModel = "spring")
 public interface UsuarioMapper {
@@ -14,5 +13,5 @@ public interface UsuarioMapper {
     UsuarioDTO entityToUsuarioDTO(UsuarioEntity usuario);
     UsuarioShowDTO entityToUsuarioShowDTO(UsuarioEntity usuario);
 
-    void updateUsuarioFromUsuarioUpdateDTO(UsuarioUpdateDTO usuarioUpdateDTO, @MappingTarget UsuarioEntity usuario);
+    void updateUsuarioFromUsuarioUpdateDTO(UsuarioRequestDTO usuarioRequestDTO, @MappingTarget UsuarioEntity usuario);
 }
