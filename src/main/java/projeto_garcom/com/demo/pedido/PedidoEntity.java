@@ -2,8 +2,11 @@ package projeto_garcom.com.demo.pedido;
 
 import jakarta.persistence.*;
 import lombok.*;
+import projeto_garcom.com.demo.cliente.ClienteEntity;
+import projeto_garcom.com.demo.item_pedido.ItemPedidoEntity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Setter
 @Getter
@@ -25,4 +28,12 @@ public class PedidoEntity {
 
     @Column(name = "horario_entrega", nullable = false)
     private LocalDateTime horarioEntrega;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cliente_id")
+    private ClienteEntity cliente;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_pedido_id")
+    private List<ItemPedidoEntity> itensPedido;
 }

@@ -1,7 +1,6 @@
 package projeto_garcom.com.demo.caixa;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import projeto_garcom.com.demo.usuario.UsuarioEntity;
 
@@ -11,7 +10,8 @@ import projeto_garcom.com.demo.usuario.UsuarioEntity;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "caixa", schema = "restaurante")
 public class CaixaEntity extends UsuarioEntity {
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 }

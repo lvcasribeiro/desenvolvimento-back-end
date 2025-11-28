@@ -2,6 +2,12 @@ package projeto_garcom.com.demo.conta;
 
 import jakarta.persistence.*;
 import lombok.*;
+import projeto_garcom.com.demo.caixa.CaixaEntity;
+import projeto_garcom.com.demo.mesa.MesaEntity;
+import projeto_garcom.com.demo.pagamento.PagamentoEntity;
+import projeto_garcom.com.demo.pedido.PedidoEntity;
+
+import java.util.List;
 
 @Setter
 @Getter
@@ -17,4 +23,20 @@ public class ContaEntity {
 
     @Column(name = "nome", nullable = false)
     private String nome;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pedido_id")
+    private List<PedidoEntity> pedidos;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pagamento_id")
+    private PagamentoEntity pagamento;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mesa_id")
+    private MesaEntity mesa;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "caixa_id")
+    private CaixaEntity caixa;
 }

@@ -2,6 +2,7 @@ package projeto_garcom.com.demo.item_pedido;
 
 import jakarta.persistence.*;
 import lombok.*;
+import projeto_garcom.com.demo.pedido.PedidoEntity;
 
 @Setter
 @Getter
@@ -17,4 +18,8 @@ public class ItemPedidoEntity {
 
     @Column(name = "quantidade", nullable = false)
     private Integer quantidade;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_cardapio_id")
+    private PedidoEntity item_cardapio;
 }

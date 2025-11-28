@@ -6,7 +6,6 @@ import lombok.*;
 @Setter
 @Getter
 @Entity
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "usuario", schema = "restaurante")
@@ -18,7 +17,7 @@ public class UsuarioEntity {
     @Column(name = "nome", nullable = false)
     private String nome;
 
-    @Column(name = "login", nullable = false)
+    @Column(name = "login", nullable = false, unique = true)
     private String login;
 
     @Column(name = "senha", nullable = false)
