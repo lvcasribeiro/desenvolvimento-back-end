@@ -10,7 +10,6 @@ import projeto_garcom.com.demo.usuario.UsuarioEntity;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "caixa", schema = "restaurante")
 public class CaixaEntity extends UsuarioEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

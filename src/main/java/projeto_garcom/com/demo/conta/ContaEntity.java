@@ -7,6 +7,8 @@ import projeto_garcom.com.demo.mesa.MesaEntity;
 import projeto_garcom.com.demo.pagamento.PagamentoEntity;
 import projeto_garcom.com.demo.pedido.PedidoEntity;
 
+import java.util.List;
+
 @Setter
 @Getter
 @Entity
@@ -24,7 +26,7 @@ public class ContaEntity {
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "pedido_id")
-    private PedidoEntity pedido;
+    private List<PedidoEntity> pedidos;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pagamento_id")
