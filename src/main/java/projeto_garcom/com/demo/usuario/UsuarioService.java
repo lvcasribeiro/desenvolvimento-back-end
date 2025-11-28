@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import projeto_garcom.com.demo.common.exceptions.InvalidEntityException;
 import projeto_garcom.com.demo.common.exceptions.NotFoundException;
 import projeto_garcom.com.demo.usuario.dto.UsuarioRequestDTO;
+import projeto_garcom.com.demo.usuario.dto.UsuarioUpdateDTO;
 
 @Service
 public class UsuarioService {
@@ -46,18 +47,21 @@ public class UsuarioService {
         }
 
         UsuarioEntity entity = usuarioMapper.toEntityFromRequest(dto);
+
         return usuarioRepository.save(entity);
     }
 
     @Transactional
-    public UsuarioEntity atualizar(Long id, UsuarioRequestDTO dto) {
+    public UsuarioEntity atualizar(Long id, UsuarioUpdateDTO dto) {
+
         if (usuarioRepository.existsByLoginAndIdNot(dto.login(), id)) {
             throw new InvalidEntityException("Já existe um usuário com esse login.");
         }
 
         UsuarioEntity entity = buscarPorId(id);
-        usuarioMapper.updateUsuarioFromUsuarioUpdateDTO(dto, entity);
+        usuarioMapper.updateUsuarioFromUpdateDTO(dto, entity);
 
         return usuarioRepository.save(entity);
     }
+
 }

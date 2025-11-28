@@ -3,6 +3,7 @@ package projeto_garcom.com.demo.pedido;
 import jakarta.persistence.*;
 import lombok.*;
 import projeto_garcom.com.demo.cliente.ClienteEntity;
+import projeto_garcom.com.demo.conta.ContaEntity;
 import projeto_garcom.com.demo.item_pedido.ItemPedidoEntity;
 
 import java.time.LocalDateTime;
@@ -36,4 +37,8 @@ public class PedidoEntity {
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_pedido_id")
     private List<ItemPedidoEntity> itensPedido;
+
+    @ManyToOne
+    @JoinColumn(name = "conta_id")
+    private ContaEntity conta;
 }

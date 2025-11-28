@@ -2,7 +2,7 @@ package projeto_garcom.com.demo.mesa;
 
 import jakarta.persistence.*;
 import lombok.*;
-import projeto_garcom.com.demo.garcom.GarcomEntity;
+import projeto_garcom.com.demo.usuario.UsuarioEntity;
 
 import java.util.List;
 
@@ -24,7 +24,9 @@ public class MesaEntity {
     @Column(name = "disponivel", nullable = false)
     private Boolean disponivel;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "garcom_id")
-    private List<GarcomEntity> garcons;
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "garcom_id", nullable = true)
+    private UsuarioEntity garcom;
+
+
 }

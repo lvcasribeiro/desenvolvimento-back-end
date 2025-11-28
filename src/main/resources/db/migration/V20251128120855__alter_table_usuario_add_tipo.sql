@@ -1,0 +1,5 @@
+ALTER TABLE restaurante.usuario
+ADD COLUMN tipo VARCHAR(20) NOT NULL DEFAULT 'USUARIO';
+
+ALTER TABLE restaurante.usuario
+ALTER COLUMN tipo DROP DEFAULT;

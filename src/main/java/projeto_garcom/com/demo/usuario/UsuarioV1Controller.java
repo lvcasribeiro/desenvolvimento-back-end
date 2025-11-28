@@ -7,6 +7,7 @@ import projeto_garcom.com.demo.common.dto.PaginatedResponse;
 import projeto_garcom.com.demo.usuario.dto.UsuarioDTO;
 import projeto_garcom.com.demo.usuario.dto.UsuarioRequestDTO;
 import projeto_garcom.com.demo.usuario.dto.UsuarioShowDTO;
+import projeto_garcom.com.demo.usuario.dto.UsuarioUpdateDTO;
 
 @RestController
 @RequestMapping("/api/v1/usuario")
@@ -52,8 +53,7 @@ public class UsuarioV1Controller {
     }
 
     @PutMapping("/{id}")
-    public UsuarioShowDTO atualizar(@PathVariable Long id, @RequestBody UsuarioRequestDTO dto) {
-
+    public UsuarioShowDTO atualizar(@PathVariable Long id, @RequestBody UsuarioUpdateDTO dto) {
         return usuarioMapper.entityToUsuarioShowDTO(usuarioService.atualizar(id, dto));
     }
 }

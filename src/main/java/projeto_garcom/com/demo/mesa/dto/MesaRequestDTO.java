@@ -1,6 +1,9 @@
 package projeto_garcom.com.demo.mesa.dto;
 
+import jakarta.validation.constraints.NotNull;
+
 public record MesaRequestDTO(
-        Integer numero,
-        Boolean disponivel
+        @NotNull Integer numero,
+        @NotNull Boolean disponivel,
+        Long garcomId
 ) {}
