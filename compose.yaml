@@ -1,0 +1,29 @@
+services:
+    postgres_restaurante:
+        image: postgres:15.8
+        restart: always
+        environment:
+            - POSTGRES_DB=restaurante
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_USER=postgres
+        ports:
+            - 5440:5432
+        volumes:
+            - pgdata_restaurante:/var/lib/postgresql/data
+    minio_restaurante:
+        image: minio/minio:latest
+        container_name: minio-restaurante
+        ports:
+            - 9007:9007
+            - 9008:9008
+        volumes:
+            - minio-restaurante-data:/data
+        environment:
+            MINIO_ROOT_USER: minioadmin
+            MINIO_ROOT_PASSWORD: minioadmin
+        command: server /data --address ":9007" --console-address ":9008"
+        restart: no
+
+volumes:
+    minio-restaurante-data:
+    pgdata_restaurante:
