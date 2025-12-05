@@ -32,10 +32,11 @@ public class ItemCardapioEntity {
     private Boolean disponivelNaCozinha;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id")
+    private CategoriaEntity categoria;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cardapio_id")
     private CardapioEntity cardapio;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "categoria_id")
-    private CategoriaEntity categoria;
 }

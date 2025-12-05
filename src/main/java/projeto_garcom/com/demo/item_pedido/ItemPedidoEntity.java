@@ -2,6 +2,7 @@ package projeto_garcom.com.demo.item_pedido;
 
 import jakarta.persistence.*;
 import lombok.*;
+import projeto_garcom.com.demo.item_cardapio.ItemCardapioEntity;
 import projeto_garcom.com.demo.pedido.PedidoEntity;
 
 @Setter
@@ -12,14 +13,19 @@ import projeto_garcom.com.demo.pedido.PedidoEntity;
 @NoArgsConstructor
 @Table(name = "item_pedido", schema = "restaurante")
 public class ItemPedidoEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "quantidade", nullable = false)
+    @Column(nullable = false)
     private Integer quantidade;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pedido_id")
+    private PedidoEntity pedido;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_cardapio_id")
-    private PedidoEntity item_cardapio;
+    private ItemCardapioEntity itemCardapio;
 }

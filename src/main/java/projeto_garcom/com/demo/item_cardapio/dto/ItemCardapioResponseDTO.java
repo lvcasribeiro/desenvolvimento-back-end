@@ -2,9 +2,12 @@ package projeto_garcom.com.demo.item_cardapio.dto;
 
 import java.math.BigDecimal;
 
-public record ItemCardapioDTO(
+public record ItemCardapioResponseDTO(
+        Long id,
         String nome,
         String ingredientes,
         BigDecimal preco,
-        Boolean disponivelNaCozinha
+        Boolean disponivelNaCozinha,
+        Long categoriaId,
+        Long cardapioId
 ) {}

@@ -4,7 +4,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface ItemCardapioRepository extends JpaRepository<ItemCardapioEntity, Long>, JpaSpecificationExecutor<ItemCardapioEntity> {
+import java.util.List;
 
+@Repository
+public interface ItemCardapioRepository extends JpaRepository<ItemCardapioEntity, Long> {
+
+    List<ItemCardapioEntity> findByCategoriaId(Long categoriaId);
+
+    List<ItemCardapioEntity> findByCardapioId(Long cardapioId);
+
+    List<ItemCardapioEntity> findByDisponivelNaCozinhaTrue();
 }

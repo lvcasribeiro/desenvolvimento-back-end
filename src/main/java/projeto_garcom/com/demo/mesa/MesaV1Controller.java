@@ -47,14 +47,14 @@ public class MesaV1Controller {
 
     @PostMapping("/{id}/ocupar")
     public ResponseEntity<Void> ocuparMesa(@PathVariable Long id) {
-        //TODO: seria legal passar os dados do cliente aqui, e ja o criariamos
+
         mesaService.ocuparMesa(id);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/liberar")
     public ResponseEntity<Void> liberarMesa(@PathVariable Long id) {
-        //TODO: seria legal passar os dados do cliente aqui, e ja o criariamos
+
         mesaService.liberarMesa(id);
         return ResponseEntity.ok().build();
     }

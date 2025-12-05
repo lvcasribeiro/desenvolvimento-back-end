@@ -6,5 +6,7 @@ public record ItemCardapioRequestDTO(
         String nome,
         String ingredientes,
         BigDecimal preco,
-        Boolean disponivelNaCozinha
+        Boolean disponivelNaCozinha,
+        Long categoriaId,
+        Long cardapioId
 ) {}

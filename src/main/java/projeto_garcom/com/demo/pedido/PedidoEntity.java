@@ -7,6 +7,7 @@ import projeto_garcom.com.demo.conta.ContaEntity;
 import projeto_garcom.com.demo.item_pedido.ItemPedidoEntity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Setter
@@ -17,28 +18,27 @@ import java.util.List;
 @NoArgsConstructor
 @Table(name = "pedido", schema = "restaurante")
 public class PedidoEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "numero", nullable = false)
+    @Column(nullable = false)
     private Integer numero;
 
-    @Column(name = "horario_pedido", nullable = false)
+    @Column(nullable = false)
     private LocalDateTime horarioPedido;
 
-    @Column(name = "horario_entrega", nullable = false)
     private LocalDateTime horarioEntrega;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id")
     private ClienteEntity cliente;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_pedido_id")
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemPedidoEntity> itensPedido;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conta_id")
     private ContaEntity conta;
 }
