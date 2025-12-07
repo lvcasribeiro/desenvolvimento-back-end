@@ -8,6 +8,7 @@ import projeto_garcom.com.demo.common.dto.PaginatedResponse;
 import projeto_garcom.com.demo.conta.dto.ContaRequestDTO;
 import projeto_garcom.com.demo.conta.dto.ContaShowDTO;
 import projeto_garcom.com.demo.conta.dto.ContaUpdateDTO;
+import projeto_garcom.com.demo.mesa.MesaService;
 
 
 @RestController
@@ -17,6 +18,7 @@ public class ContaV1Controller {
 
     private final ContaService contaService;
     private final ContaMapper contaMapper;
+    private final MesaService mesaService;
 
     @GetMapping
     public ResponseEntity<PaginatedResponse<ContaShowDTO>> listar(
@@ -38,11 +40,6 @@ public class ContaV1Controller {
                 .build();
 
         return ResponseEntity.ok(response);
-    }
-
-    @PostMapping
-    public ContaShowDTO criar(@RequestBody ContaRequestDTO dto) {
-        return contaMapper.toShowDTO(contaService.criar(dto));
     }
 
     @PutMapping("/{id}")

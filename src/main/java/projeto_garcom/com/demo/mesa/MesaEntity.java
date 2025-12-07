@@ -27,6 +27,4 @@ public class MesaEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "garcom_id", nullable = true)
     private UsuarioEntity garcom;
-
-
 }

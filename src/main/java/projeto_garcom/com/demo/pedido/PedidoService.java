@@ -9,6 +9,9 @@ import projeto_garcom.com.demo.cliente.ClienteRepository;
 import projeto_garcom.com.demo.common.exceptions.InvalidEntityException;
 import projeto_garcom.com.demo.conta.ContaEntity;
 import projeto_garcom.com.demo.conta.ContaRepository;
+import projeto_garcom.com.demo.conta.ContaService;
+import projeto_garcom.com.demo.cozinha.CozinhaEntity;
+import projeto_garcom.com.demo.cozinha.CozinhaRepository;
 import projeto_garcom.com.demo.item_cardapio.ItemCardapioEntity;
 import projeto_garcom.com.demo.item_cardapio.ItemCardapioRepository;
 import projeto_garcom.com.demo.item_pedido.ItemPedidoEntity;
@@ -21,6 +24,7 @@ import projeto_garcom.com.demo.pedido.dto.PedidoResponseDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -31,6 +35,9 @@ public class PedidoService {
     private final ClienteRepository clienteRepository;
     private final ContaRepository contaRepository;
     private final ItemCardapioRepository itemCardapioRepository;
+    private final PedidoMapper pedidoMapper;
+    private final CozinhaRepository cozinhaRepository;
+    private final ContaService contaService;
 
     @Transactional
     public PedidoResponseDTO criarPedido(PedidoRequestDTO dto) {
@@ -38,7 +45,7 @@ public class PedidoService {
         PedidoEntity pedido = new PedidoEntity();
         pedido.setNumero(dto.numero());
         pedido.setHorarioPedido(LocalDateTime.now());
-        pedido.setHorarioEntrega(null);
+        pedido.setStatus(StatusPedido.RECEBIDO);
 
         if (dto.clienteId() != null) {
             ClienteEntity cliente = clienteRepository.findById(dto.clienteId())
@@ -52,12 +59,16 @@ public class PedidoService {
             pedido.setConta(conta);
         }
 
+        CozinhaEntity cozinha = cozinhaRepository.findFirstByOrderByIdAsc()
+                .orElseThrow(() -> new RuntimeException("Cozinha não encontrada"));
+        pedido.setCozinha(cozinha);
+
         PedidoEntity pedidoSalvo = pedidoRepository.save(pedido);
 
-
         List<ItemPedidoEntity> itens = dto.itens().stream().map(item -> {
+
             ItemCardapioEntity cardapio = itemCardapioRepository.findById(item.itemCardapioId())
-                    .orElseThrow(() -> new RuntimeException("Item do cardápio inexistente"));
+                    .orElseThrow(() -> new RuntimeException("Item inexistente"));
 
             if (!cardapio.getDisponivelNaCozinha()) {
                 throw new RuntimeException("Item indisponível na cozinha");
@@ -74,14 +85,20 @@ public class PedidoService {
 
         pedidoSalvo.setItensPedido(itens);
 
-        return PedidoMapper.toResponse(pedidoSalvo);
+        if (pedidoSalvo.getConta() != null) {
+            contaService.recalcularTotalESalvar(pedidoSalvo.getConta().getId());
+        }
+
+        return pedidoMapper.toResponse(pedidoSalvo);
     }
 
-    public PedidoResponseDTO buscarPorId(Long id) {
+    @Transactional
+    public PedidoResponseDTO iniciarPreparo(Long id) {
         PedidoEntity pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
-        return PedidoMapper.toResponse(pedido);
+        pedido.setStatus(StatusPedido.EM_PREPARO);
+        return pedidoMapper.toResponse(pedidoRepository.save(pedido));
     }
 
     @Transactional
@@ -89,8 +106,49 @@ public class PedidoService {
         PedidoEntity pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
+        pedido.setStatus(StatusPedido.PRONTO);
         pedido.setHorarioEntrega(LocalDateTime.now());
 
-        return PedidoMapper.toResponse(pedidoRepository.save(pedido));
+        PedidoEntity salvo = pedidoRepository.save(pedido);
+
+        if (salvo.getConta() != null) {
+            contaService.recalcularTotalESalvar(salvo.getConta().getId());
+        }
+
+        return pedidoMapper.toResponse(salvo);
+    }
+
+    @Transactional
+    public PedidoResponseDTO entregar(Long id) {
+        PedidoEntity pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+
+        pedido.setStatus(StatusPedido.ENTREGUE);
+
+        PedidoEntity salvo = pedidoRepository.save(pedido);
+
+        if (salvo.getConta() != null) {
+            contaService.recalcularTotalESalvar(salvo.getConta().getId());
+        }
+
+        return pedidoMapper.toResponse(salvo);
+    }
+
+    public PedidoResponseDTO buscarPorId(Long id) {
+        PedidoEntity pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+
+        return pedidoMapper.toResponse(pedido);
+    }
+
+    public List<PedidoEntity> listarTodos() {
+        return pedidoRepository.findAll();
+    }
+
+    public List<PedidoEntity> listarPorStatus(StatusPedido status) {
+        if (status == null) {
+            return listarTodos();
+        }
+        return pedidoRepository.findByStatus(status);
     }
 }

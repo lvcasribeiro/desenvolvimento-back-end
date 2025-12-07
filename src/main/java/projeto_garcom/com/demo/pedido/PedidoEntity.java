@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import projeto_garcom.com.demo.cliente.ClienteEntity;
 import projeto_garcom.com.demo.conta.ContaEntity;
+import projeto_garcom.com.demo.cozinha.CozinhaEntity;
 import projeto_garcom.com.demo.item_pedido.ItemPedidoEntity;
 
 import java.time.LocalDateTime;
@@ -41,4 +42,12 @@ public class PedidoEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conta_id")
     private ContaEntity conta;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cozinha_id")
+    private CozinhaEntity cozinha;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusPedido status;
 }

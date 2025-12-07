@@ -1,52 +1,31 @@
 package projeto_garcom.com.demo.item_cardapio;
 
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.springframework.stereotype.Component;
 import projeto_garcom.com.demo.cardapio.CardapioEntity;
 import projeto_garcom.com.demo.categoria.CategoriaEntity;
 import projeto_garcom.com.demo.item_cardapio.dto.ItemCardapioRequestDTO;
 import projeto_garcom.com.demo.item_cardapio.dto.ItemCardapioResponseDTO;
 
-@Component
-public class ItemCardapioMapper {
+@Mapper(componentModel = "spring")
+public interface ItemCardapioMapper {
 
-    public ItemCardapioEntity toEntity(
-            ItemCardapioRequestDTO dto,
-            CategoriaEntity categoria,
-            CardapioEntity cardapio
-    ) {
-        return ItemCardapioEntity.builder()
-                .nome(dto.nome())
-                .ingredientes(dto.ingredientes())
-                .preco(dto.preco())
-                .disponivelNaCozinha(dto.disponivelNaCozinha())
-                .categoria(categoria)
-                .cardapio(cardapio)
-                .build();
-    }
+    // CREATE
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "categoria", ignore = true)
+    @Mapping(target = "cardapio", ignore = true)
+    ItemCardapioEntity toEntity(ItemCardapioRequestDTO dto);
 
-    public void updateEntity(
-            ItemCardapioEntity entity,
-            ItemCardapioRequestDTO dto,
-            CategoriaEntity categoria,
-            CardapioEntity cardapio
-    ) {
-        entity.setNome(dto.nome());
-        entity.setIngredientes(dto.ingredientes());
-        entity.setPreco(dto.preco());
-        entity.setDisponivelNaCozinha(dto.disponivelNaCozinha());
-        entity.setCategoria(categoria);
-        entity.setCardapio(cardapio);
-    }
+    // UPDATE
+    @Mapping(target = "categoria", ignore = true)
+    @Mapping(target = "cardapio", ignore = true)
+    void updateEntity(@MappingTarget ItemCardapioEntity entity,
+                      ItemCardapioRequestDTO dto);
 
-    public ItemCardapioResponseDTO toResponse(ItemCardapioEntity e) {
-        return new ItemCardapioResponseDTO(
-                e.getId(),
-                e.getNome(),
-                e.getIngredientes(),
-                e.getPreco(),
-                e.getDisponivelNaCozinha(),
-                e.getCategoria().getId(),
-                e.getCardapio().getId()
-        );
-    }
+    // RESPONSE
+    @Mapping(source = "categoria.id", target = "categoriaId")
+    @Mapping(source = "cardapio.id", target = "cardapioId")
+    ItemCardapioResponseDTO toResponse(ItemCardapioEntity entity);
 }

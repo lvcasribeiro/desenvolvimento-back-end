@@ -8,8 +8,5 @@ import java.util.List;
 public record ContaRequestDTO(
         @NotBlank String nome,
         @NotNull Long mesaId,
-        @NotNull Long caixaId,
         List<Long> pedidosIds
-        //Todo: devemos passar o pagamento no memnto da abertura?
-        //Long pagamentoId
 ) {}

@@ -1,5 +1,7 @@
 package projeto_garcom.com.demo.pedido;
 
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.springframework.stereotype.Component;
 import projeto_garcom.com.demo.cliente.ClienteEntity;
 import projeto_garcom.com.demo.cliente.ClienteRepository;
@@ -16,30 +18,22 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
-public class PedidoMapper {
+@Mapper(componentModel = "spring")
+public interface PedidoMapper {
 
-    public static PedidoResponseDTO toResponse(PedidoEntity pedido) {
-        return new PedidoResponseDTO(
-                pedido.getId(),
-                pedido.getNumero(),
-                pedido.getHorarioPedido(),
-                pedido.getHorarioEntrega(),
-                pedido.getCliente() != null ? pedido.getCliente().getId() : null,
-                pedido.getConta() != null ? pedido.getConta().getId() : null,
-                pedido.getItensPedido().stream()
-                        .map(PedidoMapper::toItemResponse)
-                        .collect(Collectors.toList())
-        );
-    }
+    @Mapping(source = "cliente.id", target = "clienteId")
+    @Mapping(source = "conta.id", target = "contaId")
+    @Mapping(source = "itensPedido", target = "itens")
+    PedidoResponseDTO toResponse(PedidoEntity pedido);
 
-    private static ItemPedidoResponseDTO toItemResponse(ItemPedidoEntity item) {
-        return new ItemPedidoResponseDTO(
-                item.getId(),
-                item.getItemCardapio().getNome(),
-                item.getQuantidade(),
-                item.getItemCardapio().getPreco().doubleValue(),
-                item.getQuantidade() * item.getItemCardapio().getPreco().doubleValue()
-        );
+    @Mapping(source = "itemCardapio.nome", target = "nomeItem")
+    @Mapping(source = "itemCardapio.preco", target = "precoUnitario")
+    @Mapping(target = "subtotal", expression = "java(calcularSubtotal(item))")
+    ItemPedidoResponseDTO toItemResponse(ItemPedidoEntity item);
+
+    default Double calcularSubtotal(ItemPedidoEntity item) {
+        if (item == null || item.getItemCardapio() == null) return 0.0;
+
+        return item.getQuantidade() * item.getItemCardapio().getPreco().doubleValue();
     }
 }

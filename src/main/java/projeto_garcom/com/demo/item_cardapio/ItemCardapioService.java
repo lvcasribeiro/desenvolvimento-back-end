@@ -31,7 +31,12 @@ public class ItemCardapioService {
         CardapioEntity cardapio = cardapioRepository.findById(dto.cardapioId())
                 .orElseThrow(() -> new NotFoundException("Cardápio não encontrado"));
 
-        ItemCardapioEntity entity = mapper.toEntity(dto, categoria, cardapio);
+        ItemCardapioEntity entity = mapper.toEntity(dto);
+
+        // relacionamentos resolvidos no service
+        entity.setCategoria(categoria);
+        entity.setCardapio(cardapio);
+
         repository.save(entity);
 
         return mapper.toResponse(entity);
@@ -48,12 +53,17 @@ public class ItemCardapioService {
         CardapioEntity cardapio = cardapioRepository.findById(dto.cardapioId())
                 .orElseThrow(() -> new NotFoundException("Cardápio não encontrado"));
 
-        mapper.updateEntity(entity, dto, categoria, cardapio);
+        mapper.updateEntity(entity, dto);
+
+
+        entity.setCategoria(categoria);
+        entity.setCardapio(cardapio);
 
         repository.save(entity);
 
         return mapper.toResponse(entity);
     }
+
 
     public void ativar(Long id) {
         ItemCardapioEntity entity = repository.findById(id)

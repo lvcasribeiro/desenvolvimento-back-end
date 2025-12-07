@@ -22,6 +22,7 @@ import projeto_garcom.com.demo.usuario.TipoUsuarioEnum;
 import projeto_garcom.com.demo.usuario.UsuarioEntity;
 import projeto_garcom.com.demo.usuario.UsuarioRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -45,43 +46,6 @@ public class ContaService {
     public ContaEntity buscarPorId(Long id) {
         return contaRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Conta não encontrada."));
-    }
-
-    @Transactional
-    public ContaEntity criar(ContaRequestDTO dto) {
-
-        ContaEntity conta = contaMapper.toEntity(dto);
-
-        UsuarioEntity caixa = usuarioRepository.findById(dto.caixaId())
-                .orElseThrow(() -> new NotFoundException("Caixa não encontrado."));
-
-        if (caixa.getTipo() != TipoUsuarioEnum.CAIXA) {
-            throw new InvalidEntityException("Usuário informado não é do tipo CAIXA.");
-        }
-
-        conta.setCaixa(caixa);
-
-        MesaEntity mesa = mesaRepository.findById(dto.mesaId())
-                .orElseThrow(() -> new NotFoundException("Mesa não encontrada."));
-        conta.setMesa(mesa);
-
-        mesaService.ocuparMesa(mesa.getId());
-
-        if (dto.pedidosIds() != null) {
-            List<PedidoEntity> pedidos = pedidoRepository.findAllById(dto.pedidosIds());
-            conta.setPedidos(pedidos);
-        }
-
-        // Todo: no momento da criação da conta ja devemos passar o pagamento? creio que não, discutir com o manos
-//        if (dto.pagamentoId() != null) {
-//            PagamentoEntity pagamento = pagamentoRepository.findById(dto.pagamentoId())
-//                    .orElseThrow(() -> new NotFoundException("Pagamento não encontrado."));
-//            conta.setPagamento(pagamento);
-//        }
-
-        conta.setAberta(true);
-
-        return contaRepository.save(conta);
     }
 
     @Transactional
@@ -130,4 +94,33 @@ public class ContaService {
         contaRepository.save(conta);
     }
 
+    public BigDecimal calcularTotalDaConta(Long contaId) {
+        ContaEntity conta = buscarPorId(contaId);
+
+        BigDecimal total = conta.getPedidos() == null
+                ? BigDecimal.ZERO
+                : conta.getPedidos().stream()
+                .flatMap(p -> p.getItensPedido().stream())
+                .map(item -> item.getItemCardapio().getPreco().multiply(BigDecimal.valueOf(item.getQuantidade())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return total;
+    }
+
+    @Transactional
+    public BigDecimal recalcularTotalESalvar(Long contaId) {
+        ContaEntity conta = buscarPorId(contaId);
+
+        BigDecimal total = conta.getPedidos() == null
+                ? BigDecimal.ZERO
+                : conta.getPedidos().stream()
+                .flatMap(p -> p.getItensPedido().stream())
+                .map(item -> item.getItemCardapio().getPreco().multiply(BigDecimal.valueOf(item.getQuantidade())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        conta.setTotal(total);
+        contaRepository.save(conta);
+
+        return total;
+    }
 }

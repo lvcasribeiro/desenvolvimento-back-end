@@ -7,6 +7,7 @@ import projeto_garcom.com.demo.pagamento.PagamentoEntity;
 import projeto_garcom.com.demo.pedido.PedidoEntity;
 import projeto_garcom.com.demo.usuario.UsuarioEntity;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,5 +43,8 @@ public class ContaEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "caixa_id", nullable = false)
     private UsuarioEntity caixa;
+
+    @Column(name = "total", nullable = false)
+    private BigDecimal total = BigDecimal.ZERO;
 
 }

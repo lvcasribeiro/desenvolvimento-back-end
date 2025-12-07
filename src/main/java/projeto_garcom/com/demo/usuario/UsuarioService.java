@@ -1,5 +1,6 @@
 package projeto_garcom.com.demo.usuario;
 
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,15 +15,10 @@ import projeto_garcom.com.demo.usuario.dto.UsuarioRequestDTO;
 import projeto_garcom.com.demo.usuario.dto.UsuarioUpdateDTO;
 
 @Service
+@AllArgsConstructor
 public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
-
-    @Autowired
-    public UsuarioService(UsuarioRepository usuarioRepository, UsuarioMapper usuarioMapper) {
-        this.usuarioRepository = usuarioRepository;
-        this.usuarioMapper = usuarioMapper;
-    }
 
     public Page<UsuarioEntity> buscarUsuarios(int page, int perPage, String nome) {
         int pageNumber = Math.max(page - 1, 0);
