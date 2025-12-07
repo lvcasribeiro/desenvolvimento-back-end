@@ -14,6 +14,8 @@ public interface MesaMapper {
     @Mapping(target = "garcom", ignore = true)
     MesaEntity toEntity(MesaRequestDTO dto);
 
+    @Mapping(target = "garcomId", source = "garcom.id")
+    @Mapping(target = "garcomNome", source = "garcom.nome")
     MesaShowDTO toShowDTO(MesaEntity entity);
 
     @Mapping(target = "id", ignore = true)

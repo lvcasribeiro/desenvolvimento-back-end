@@ -2,6 +2,9 @@ package projeto_garcom.com.demo.mesa;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import projeto_garcom.com.demo.common.exceptions.InvalidEntityException;
 import projeto_garcom.com.demo.common.exceptions.NotFoundException;
@@ -131,11 +134,13 @@ public class MesaService {
         return conta;
     }
 
-    public List<MesaEntity> listar(Boolean disponivel, Long garcomId) {
-        Specification<MesaEntity> spec = Specification
-                .where(MesaSpecification.disponivel(disponivel))
-                .and(MesaSpecification.garcom(garcomId));
+    public Page<MesaEntity> listar(int page, int perPage, Boolean disponivel, Long garcomId) {
+        int pageNumber = Math.max(page - 1, 0);
+        int pageSize = perPage > 0 ? perPage : 20;
 
-        return mesaRepository.findAll(spec);
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Specification<MesaEntity> spec = MesaSpecification.disponivel(disponivel).and(MesaSpecification.garcom(garcomId));
+
+        return mesaRepository.findAll(spec, pageable);
     }
 }
