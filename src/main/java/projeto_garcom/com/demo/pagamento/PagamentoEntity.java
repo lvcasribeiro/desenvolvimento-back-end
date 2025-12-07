@@ -20,4 +20,8 @@ public class PagamentoEntity {
 
     @Column(name = "numero", nullable = true)
     private Integer numero;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_pagamento", nullable = false)
+    private PagamentoEnum tipoPagamento;
 }
