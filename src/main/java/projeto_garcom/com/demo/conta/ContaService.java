@@ -7,15 +7,16 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import projeto_garcom.com.demo.cliente.ClienteEntity;
+import projeto_garcom.com.demo.cliente.dto.ClienteDTO;
 import projeto_garcom.com.demo.common.exceptions.InvalidEntityException;
 import projeto_garcom.com.demo.common.exceptions.NotFoundException;
-import projeto_garcom.com.demo.conta.dto.ContaDTO;
-import projeto_garcom.com.demo.conta.dto.ContaRequestDTO;
-import projeto_garcom.com.demo.conta.dto.ContaShowDTO;
-import projeto_garcom.com.demo.conta.dto.ContaUpdateDTO;
+import projeto_garcom.com.demo.conta.dto.*;
 import projeto_garcom.com.demo.mesa.MesaEntity;
+import projeto_garcom.com.demo.mesa.MesaMapper;
 import projeto_garcom.com.demo.mesa.MesaRepository;
 import projeto_garcom.com.demo.mesa.MesaService;
+import projeto_garcom.com.demo.mesa.dto.MesaOcuparDTO;
 import projeto_garcom.com.demo.pagamento.PagamentoEntity;
 import projeto_garcom.com.demo.pagamento.PagamentoMapper;
 import projeto_garcom.com.demo.pagamento.PagamentoRepository;
@@ -29,6 +30,7 @@ import projeto_garcom.com.demo.usuario.UsuarioEntity;
 import projeto_garcom.com.demo.usuario.UsuarioRepository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -45,6 +47,7 @@ public class ContaService {
     private final MesaService mesaService;
     private final PagamentoService pagamentoService;
     private final PagamentoMapper pagamentoMapper;
+    private final MesaMapper mesaMapper;
 
     public Page<ContaEntity> buscarContas(int page, int perPage, String nome) {
         Pageable pageable = PageRequest.of(Math.max(page - 1, 0), perPage);
@@ -85,7 +88,9 @@ public class ContaService {
             MesaEntity novaMesa = mesaRepository.findById(dto.mesaId())
                     .orElseThrow(() -> new NotFoundException("Nova mesa não encontrada."));
 
-            mesaService.ocuparMesa(novaMesa.getId());
+            MesaOcuparDTO mesaOcuparDTO = mesaMapper.toMesaOcuparDTO(novaMesa);
+
+            mesaService.ocuparMesa(mesaOcuparDTO);
             conta.setMesa(novaMesa);
         }
 
@@ -103,17 +108,16 @@ public class ContaService {
         contaRepository.save(conta);
     }
 
-    public BigDecimal calcularTotalDaConta(Long contaId) {
-        ContaEntity conta = buscarPorId(contaId);
+    public BigDecimal calcularTotalDaConta(ContaEntity conta) {
+        if (conta.getPedidos() == null) {
+            return BigDecimal.ZERO;
+        }
 
-        BigDecimal total = conta.getPedidos() == null
-                ? BigDecimal.ZERO
-                : conta.getPedidos().stream()
+        return conta.getPedidos().stream()
                 .flatMap(p -> p.getItensPedido().stream())
-                .map(item -> item.getItemCardapio().getPreco().multiply(BigDecimal.valueOf(item.getQuantidade())))
+                .map(item -> item.getItemCardapio().getPreco()
+                        .multiply(BigDecimal.valueOf(item.getQuantidade())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        return total;
     }
 
     @Transactional
@@ -134,7 +138,107 @@ public class ContaService {
     }
 
     @Transactional
-    public ContaShowDTO finalizarConta(Long contaId, PagamentoRequestDTO pagamentoRequest) {
+    public ContaDetalhadaDTO finalizarConta(ContaFinalizarDTO dto) {
+
+        ContaEntity conta = contaRepository.findById(dto.contaId())
+                .orElseThrow(() -> new NotFoundException("Conta não encontrada."));
+
+        if (!conta.getAberta()) {
+            throw new InvalidEntityException("Conta já está fechada.");
+        }
+
+        UsuarioEntity caixa = usuarioRepository.findById(dto.caixaId())
+                .orElseThrow(() -> new NotFoundException("Usuário (caixa) não encontrado."));
+        conta.setCaixa(caixa);
+
+        List<PedidoEntity> pedidosEntregues =
+                pedidoRepository.findAllByContaIdAndStatus(dto.contaId(), StatusPedido.ENTREGUE);
+
+        if (pedidosEntregues.isEmpty()) {
+            throw new InvalidEntityException("Não há pedidos entregues para finalizar a conta.");
+        }
+
+        // CALCULAR TOTAL
+        BigDecimal totalCalculado = pedidosEntregues.stream()
+                .flatMap(p -> p.getItensPedido().stream())
+                .map(item -> item.getItemCardapio().getPreco()
+                        .multiply(BigDecimal.valueOf(item.getQuantidade())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        conta.setTotal(totalCalculado);
+
+        // VALIDAR SALDO
+        BigDecimal saldoRestante = conta.getSaldoRestante();
+
+        if (saldoRestante.compareTo(BigDecimal.ZERO) > 0) {
+            throw new InvalidEntityException(
+                    "Conta possui pendências de pagamento. Restam: " + saldoRestante
+            );
+        }
+
+        // FECHAR A CONTA
+        conta.setAberta(false);
+        conta.getMesa().setDisponivel(true);
+
+        ClienteEntity cliente = pedidosEntregues.get(0).getCliente();
+        if (cliente != null) {
+            cliente.setHoraSaida(LocalDateTime.now());
+        }
+
+        conta = contaRepository.save(conta);
+
+        // DTO DE PEDIDOS
+        List<ContaDetalhadaDTO.PedidoConsumidoDTO> pedidosDTO = pedidosEntregues.stream()
+                .map(p -> new ContaDetalhadaDTO.PedidoConsumidoDTO(
+                        p.getId(),
+                        p.getNumero(),
+                        p.getHorarioPedido(),
+                        p.getHorarioEntrega(),
+                        p.getStatus().name(),
+                        p.getItensPedido().stream()
+                                .map(i -> new ContaDetalhadaDTO.ItemConsumidoDTO(
+                                        i.getId(),
+                                        i.getItemCardapio().getNome(),
+                                        i.getQuantidade(),
+                                        i.getItemCardapio().getPreco(),
+                                        i.getItemCardapio().getPreco()
+                                                .multiply(BigDecimal.valueOf(i.getQuantidade()))
+                                ))
+                                .toList()
+                ))
+                .toList();
+
+        // NOVO → Dados do cliente
+        ClienteDTO clienteDTO = cliente != null
+                ? new ClienteDTO(
+                cliente.getId(),
+                cliente.getNome(),
+                cliente.getHoraChegada(),
+                cliente.getHoraSaida()
+        )
+                : null;
+
+        return new ContaDetalhadaDTO(
+                conta.getId(),
+                conta.getNome(),
+                conta.getMesa().getId(),
+                caixa.getId(),
+                caixa.getNome(),
+                conta.getAberta(),
+                conta.getTotalConta(),
+                conta.getTotalPago(),
+                conta.getSaldoRestante(),
+                conta.getPagamentos().stream().map(pagamentoMapper::entityToPagamentoShowDTO).toList(),
+                pedidosDTO,
+                clienteDTO
+        );
+    }
+
+
+
+
+    @Transactional
+    public ContaShowDTO pagar(Long contaId, PagamentoRequestDTO dto) {
 
         ContaEntity conta = contaRepository.findById(contaId)
                 .orElseThrow(() -> new NotFoundException("Conta não encontrada."));
@@ -143,55 +247,23 @@ public class ContaService {
             throw new InvalidEntityException("Conta já está fechada.");
         }
 
-        List<PedidoEntity> pedidosEntregues =
-                pedidoRepository.findAllByContaIdAndStatus(contaId, StatusPedido.ENTREGUE);
+        BigDecimal valorPagamento = dto.valor();
 
-        if (pedidosEntregues.isEmpty()) {
-            throw new InvalidEntityException("Não há pedidos entregues para finalizar a conta.");
+        if (valorPagamento == null || valorPagamento.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidEntityException("Valor do pagamento deve ser maior que zero.");
         }
 
-        // 2) Calcular total dos pedidos
-        BigDecimal total = pedidosEntregues.stream()
-                .flatMap(p -> p.getItensPedido().stream())
-                .map(item -> item.getItemCardapio().getPreco()
-                        .multiply(BigDecimal.valueOf(item.getQuantidade())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal saldoAtual = conta.getSaldoRestante();
 
-        conta.setTotal(total);
-
-        // 3) Criar e associar pagamento
-        PagamentoEntity pagamento = pagamentoMapper.toEntityFromRequest(pagamentoRequest);
-        pagamento.setConta(conta);
-        pagamentoRepository.save(pagamento);
-
-        conta.getPagamentos().add(pagamento);
-
-        // 4) Verificar se total pago cobre o total da conta
-        BigDecimal totalPago = conta.getPagamentos().stream()
-                .map(PagamentoEntity::getValor)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        if (totalPago.compareTo(total) < 0) {
+        if (valorPagamento.compareTo(saldoAtual) > 0) {
             throw new InvalidEntityException(
-                    "Pagamento insuficiente. Faltam: " + total.subtract(totalPago)
+                    "Pagamento excede o valor devido. Excedente: " +
+                            valorPagamento.subtract(saldoAtual)
             );
         }
 
-        conta.setAberta(false);
-
-        MesaEntity mesa = conta.getMesa();
-        mesa.setDisponivel(true);
-
-        return contaMapper.toShowDTO(contaRepository.save(conta));
-    }
-
-    public ContaShowDTO pagar(Long contaId, PagamentoRequestDTO dto) {
-
-        ContaEntity conta = contaRepository.findById(contaId)
-                .orElseThrow(() -> new RuntimeException("Conta não encontrada"));
-
         PagamentoEntity pagamento = PagamentoEntity.builder()
-                .valor(dto.valor())
+                .valor(valorPagamento)
                 .tipoPagamento(dto.tipoPagamento())
                 .numero(dto.numero())
                 .nroTransacao(dto.nroTransacao())
@@ -199,12 +271,7 @@ public class ContaService {
                 .build();
 
         pagamentoRepository.save(pagamento);
-
         conta.getPagamentos().add(pagamento);
-
-        BigDecimal totalPago = conta.getPagamentos().stream()
-                .map(PagamentoEntity::getValor)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         contaRepository.save(conta);
 

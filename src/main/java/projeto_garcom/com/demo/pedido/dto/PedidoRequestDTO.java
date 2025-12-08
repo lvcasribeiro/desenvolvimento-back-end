@@ -11,5 +11,6 @@ public record PedidoRequestDTO(
         String clienteNome,
         Long contaId,
         List<ItemPedidoRequestDTO> itens,
-        StatusPedido statusPedido
-) {}
+        StatusPedido statusPedido,
+         Long mesaId
+        ) {}

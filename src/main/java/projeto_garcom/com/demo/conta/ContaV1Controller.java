@@ -5,9 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import projeto_garcom.com.demo.common.dto.PaginatedResponse;
-import projeto_garcom.com.demo.conta.dto.ContaRequestDTO;
-import projeto_garcom.com.demo.conta.dto.ContaShowDTO;
-import projeto_garcom.com.demo.conta.dto.ContaUpdateDTO;
+import projeto_garcom.com.demo.conta.dto.*;
 import projeto_garcom.com.demo.mesa.MesaService;
 import projeto_garcom.com.demo.pagamento.dto.PagamentoRequestDTO;
 
@@ -54,16 +52,15 @@ public class ContaV1Controller {
         return contaMapper.toShowDTO(conta);
     }
 
-    @PutMapping("/{contaId}/finalizar")
-    public ResponseEntity<ContaShowDTO> finalizarConta(
-            @PathVariable Long contaId,
-            @RequestBody PagamentoRequestDTO pagamentoRequest
+    @PostMapping("/finalizar")
+    public ResponseEntity<ContaDetalhadaDTO> finalizarConta(
+            @RequestBody ContaFinalizarDTO contaFinalizarDTO
     ) {
-        ContaShowDTO dto = contaService.finalizarConta(contaId, pagamentoRequest);
+        ContaDetalhadaDTO dto = contaService.finalizarConta(contaFinalizarDTO);
         return ResponseEntity.ok(dto);
     }
 
-    @PutMapping("/{id}/pagar")
+    @PostMapping("/{id}/pagar")
     public ContaShowDTO pagar(
             @PathVariable Long id,
             @RequestBody PagamentoRequestDTO dto

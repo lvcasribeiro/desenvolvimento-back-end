@@ -10,10 +10,7 @@ import projeto_garcom.com.demo.common.dto.PaginatedResponse;
 import projeto_garcom.com.demo.conta.ContaEntity;
 import projeto_garcom.com.demo.conta.ContaMapper;
 import projeto_garcom.com.demo.conta.dto.ContaShowDTO;
-import projeto_garcom.com.demo.mesa.dto.MesaDTO;
-import projeto_garcom.com.demo.mesa.dto.MesaRequestDTO;
-import projeto_garcom.com.demo.mesa.dto.MesaShowDTO;
-import projeto_garcom.com.demo.mesa.dto.MesaUpdateDTO;
+import projeto_garcom.com.demo.mesa.dto.*;
 
 import java.util.List;
 
@@ -55,11 +52,10 @@ private final MesaMapper mesaMapper;
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/ocupar")
-    public ResponseEntity<Void> ocuparMesa(@PathVariable Long id) {
-
-        mesaService.ocuparMesa(id);
-        return ResponseEntity.ok().build();
+    @PostMapping("/ocupar")
+    public ResponseEntity<String> ocuparMesa(@RequestBody @Valid MesaOcuparDTO dto) {
+        mesaService.ocuparMesa(dto);
+        return ResponseEntity.ok("Mesa Ocupada com Sucesso.");
     }
 
     @PostMapping("/{id}/liberar")
@@ -76,16 +72,16 @@ private final MesaMapper mesaMapper;
     }
 
     @GetMapping
-    public ResponseEntity<PaginatedResponse<MesaShowDTO>> listar(
+    public ResponseEntity<PaginatedResponse<MesaDTO>> listar(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int perPage,
             @RequestParam(required = false) Boolean disponivel,
             @RequestParam(required = false) Long garcomId
     ) {
-        Page<MesaShowDTO> mesaPage = mesaService.listar(page, perPage, disponivel, garcomId)
-                .map(mesaMapper::toShowDTO);
+        Page<MesaDTO> mesaPage = mesaService.listar(page, perPage, disponivel, garcomId)
+                .map(mesaMapper::toDTO);
 
-        PaginatedResponse<MesaShowDTO> response = PaginatedResponse.<MesaShowDTO>builder()
+        PaginatedResponse<MesaDTO> response = PaginatedResponse.<MesaDTO>builder()
                 .data(mesaPage.getContent())
                 .meta(PaginatedResponse.Meta.builder()
                         .totalItems(mesaPage.getTotalElements())

@@ -18,7 +18,6 @@ public class CardapioEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_cardapio_id")
+    @OneToMany(mappedBy = "cardapio", fetch = FetchType.LAZY)
     private List<ItemCardapioEntity> itens;
 }

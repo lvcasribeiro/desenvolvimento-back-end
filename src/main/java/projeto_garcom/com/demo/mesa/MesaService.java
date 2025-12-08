@@ -10,9 +10,7 @@ import projeto_garcom.com.demo.common.exceptions.InvalidEntityException;
 import projeto_garcom.com.demo.common.exceptions.NotFoundException;
 import projeto_garcom.com.demo.conta.ContaEntity;
 import projeto_garcom.com.demo.conta.ContaRepository;
-import projeto_garcom.com.demo.mesa.dto.MesaRequestDTO;
-import projeto_garcom.com.demo.mesa.dto.MesaShowDTO;
-import projeto_garcom.com.demo.mesa.dto.MesaUpdateDTO;
+import projeto_garcom.com.demo.mesa.dto.*;
 import projeto_garcom.com.demo.usuario.TipoUsuarioEnum;
 import projeto_garcom.com.demo.usuario.UsuarioEntity;
 import projeto_garcom.com.demo.usuario.UsuarioRepository;
@@ -77,15 +75,18 @@ public class MesaService {
     }
 
     @Transactional
-    public void ocuparMesa(Long mesaId) {
-        MesaEntity mesa = mesaRepository.findById(mesaId)
-                .orElseThrow(() -> new NotFoundException("Mesa não encontrada: " + mesaId));
+    public void ocuparMesa(MesaOcuparDTO dto){
+        MesaEntity mesa = mesaRepository.findById(dto.mesaId())
+                .orElseThrow(() -> new NotFoundException("Mesa não encontrada: " + dto.mesaId()));
 
         if (!mesa.getDisponivel()) {
             throw new InvalidEntityException("Mesa já está ocupada");
         }
 
+        UsuarioEntity garcom = buscarGarcom(dto.garcomId());
+
         mesa.setDisponivel(false);
+        mesa.setGarcom(garcom);
         mesaRepository.save(mesa);
     }
 

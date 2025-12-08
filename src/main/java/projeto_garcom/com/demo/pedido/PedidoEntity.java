@@ -6,6 +6,7 @@ import projeto_garcom.com.demo.cliente.ClienteEntity;
 import projeto_garcom.com.demo.conta.ContaEntity;
 import projeto_garcom.com.demo.cozinha.CozinhaEntity;
 import projeto_garcom.com.demo.item_pedido.ItemPedidoEntity;
+import projeto_garcom.com.demo.mesa.MesaEntity;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -46,6 +47,10 @@ public class PedidoEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cozinha_id")
     private CozinhaEntity cozinha;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mesa_id")
+    private MesaEntity mesa;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -43,12 +43,12 @@ public class CozinhaV1Controller {
         );
     }
 
-    @PutMapping("/{pedidoId}/iniciar")
+    @PostMapping("/{pedidoId}/iniciar")
     public ResponseEntity<PedidoResponseDTO> iniciarPreparo(@PathVariable Long pedidoId) {
         return ResponseEntity.ok(cozinhaService.iniciarPreparo(pedidoId));
     }
 
-    @PutMapping("/{pedidoId}/finalizar")
+    @PostMapping("/{pedidoId}/finalizar")
     public ResponseEntity<PedidoResponseDTO> finalizar(@PathVariable Long pedidoId) {
         return ResponseEntity.ok(cozinhaService.finalizarPreparo(pedidoId));
     }

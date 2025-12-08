@@ -14,6 +14,5 @@ public record ContaShowDTO(
         BigDecimal totalConta,
         BigDecimal totalPago,
         BigDecimal saldoRestante,
-        //String status,
         List<PagamentoShowDTO> pagamentos
 ) {}
