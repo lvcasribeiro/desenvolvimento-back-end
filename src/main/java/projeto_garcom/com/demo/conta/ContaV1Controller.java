@@ -9,6 +9,7 @@ import projeto_garcom.com.demo.conta.dto.ContaRequestDTO;
 import projeto_garcom.com.demo.conta.dto.ContaShowDTO;
 import projeto_garcom.com.demo.conta.dto.ContaUpdateDTO;
 import projeto_garcom.com.demo.mesa.MesaService;
+import projeto_garcom.com.demo.pagamento.dto.PagamentoRequestDTO;
 
 
 @RestController
@@ -51,5 +52,22 @@ public class ContaV1Controller {
     public ContaShowDTO buscar(@PathVariable Long id) {
         ContaEntity conta = contaService.buscarPorId(id);
         return contaMapper.toShowDTO(conta);
+    }
+
+    @PutMapping("/{contaId}/finalizar")
+    public ResponseEntity<ContaShowDTO> finalizarConta(
+            @PathVariable Long contaId,
+            @RequestBody PagamentoRequestDTO pagamentoRequest
+    ) {
+        ContaShowDTO dto = contaService.finalizarConta(contaId, pagamentoRequest);
+        return ResponseEntity.ok(dto);
+    }
+
+    @PutMapping("/{id}/pagar")
+    public ContaShowDTO pagar(
+            @PathVariable Long id,
+            @RequestBody PagamentoRequestDTO dto
+    ) {
+        return contaService.pagar(id, dto);
     }
 }

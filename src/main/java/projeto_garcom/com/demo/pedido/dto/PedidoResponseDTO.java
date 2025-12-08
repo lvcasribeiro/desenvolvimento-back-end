@@ -1,6 +1,7 @@
 package projeto_garcom.com.demo.pedido.dto;
 
 import projeto_garcom.com.demo.item_pedido.dto.ItemPedidoResponseDTO;
+import projeto_garcom.com.demo.pedido.StatusPedido;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,5 +13,6 @@ public record PedidoResponseDTO(
         LocalDateTime horarioEntrega,
         Long clienteId,
         Long contaId,
-        List<ItemPedidoResponseDTO> itens
+        List<ItemPedidoResponseDTO> itens,
+        StatusPedido status
 ) {}

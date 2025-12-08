@@ -23,8 +23,10 @@ import org.springframework.stereotype.Service;
 import projeto_garcom.com.demo.pedido.dto.PedidoResponseDTO;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -47,11 +49,8 @@ public class PedidoService {
         pedido.setHorarioPedido(LocalDateTime.now());
         pedido.setStatus(StatusPedido.RECEBIDO);
 
-        if (dto.clienteId() != null) {
-            ClienteEntity cliente = clienteRepository.findById(dto.clienteId())
-                    .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
-            pedido.setCliente(cliente);
-        }
+        ClienteEntity cliente = resolveCliente(dto);
+        pedido.setCliente(cliente);
 
         if (dto.contaId() != null) {
             ContaEntity conta = contaRepository.findById(dto.contaId())
@@ -65,23 +64,23 @@ public class PedidoService {
 
         PedidoEntity pedidoSalvo = pedidoRepository.save(pedido);
 
-        List<ItemPedidoEntity> itens = dto.itens().stream().map(item -> {
+        List<ItemPedidoEntity> itens = dto.itens().stream()
+                .map(item -> {
+                    ItemCardapioEntity cardapio = itemCardapioRepository.findById(item.itemCardapioId())
+                            .orElseThrow(() -> new RuntimeException("Item inexistente"));
 
-            ItemCardapioEntity cardapio = itemCardapioRepository.findById(item.itemCardapioId())
-                    .orElseThrow(() -> new RuntimeException("Item inexistente"));
+                    if (!cardapio.getDisponivelNaCozinha()) {
+                        throw new RuntimeException("Item indisponível na cozinha");
+                    }
 
-            if (!cardapio.getDisponivelNaCozinha()) {
-                throw new RuntimeException("Item indisponível na cozinha");
-            }
+                    ItemPedidoEntity itemPedido = new ItemPedidoEntity();
+                    itemPedido.setPedido(pedidoSalvo);
+                    itemPedido.setItemCardapio(cardapio);
+                    itemPedido.setQuantidade(item.quantidade());
 
-            ItemPedidoEntity itemPedido = new ItemPedidoEntity();
-            itemPedido.setPedido(pedidoSalvo);
-            itemPedido.setItemCardapio(cardapio);
-            itemPedido.setQuantidade(item.quantidade());
-
-            return itemPedidoRepository.save(itemPedido);
-
-        }).toList();
+                    return itemPedidoRepository.save(itemPedido);
+                })
+                .collect(Collectors.toCollection(ArrayList::new));
 
         pedidoSalvo.setItensPedido(itens);
 
@@ -91,6 +90,7 @@ public class PedidoService {
 
         return pedidoMapper.toResponse(pedidoSalvo);
     }
+
 
     @Transactional
     public PedidoResponseDTO iniciarPreparo(Long id) {
@@ -151,4 +151,18 @@ public class PedidoService {
         }
         return pedidoRepository.findByStatus(status);
     }
+
+    private ClienteEntity resolveCliente(PedidoRequestDTO dto) {
+
+        if (dto.clienteNome() != null && !dto.clienteNome().isBlank()) {
+            ClienteEntity novo = new ClienteEntity();
+            novo.setNome(dto.clienteNome());
+            novo.setHoraChegada(LocalDateTime.now());
+            novo.setHoraSaida(null);
+            return clienteRepository.save(novo);
+        }
+
+        throw new RuntimeException("É necessário informar clienteId ou clienteNome");
+    }
+
 }

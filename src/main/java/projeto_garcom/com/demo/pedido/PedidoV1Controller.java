@@ -27,15 +27,15 @@ public class PedidoV1Controller {
         return ResponseEntity.ok(service.buscarPorId(id));
     }
 
-    @PostMapping("/{id}/iniciar")
-    public ResponseEntity<PedidoResponseDTO> iniciarPreparo(@PathVariable Long id) {
-        return ResponseEntity.ok(service.iniciarPreparo(id));
-    }
-
-    @PostMapping("/{id}/finalizar")
-    public ResponseEntity<PedidoResponseDTO> finalizar(@PathVariable Long id) {
-        return ResponseEntity.ok(service.finalizarPedido(id));
-    }
+//    @PostMapping("/{id}/iniciar")
+//    public ResponseEntity<PedidoResponseDTO> iniciarPreparo(@PathVariable Long id) {
+//        return ResponseEntity.ok(service.iniciarPreparo(id));
+//    }
+//
+//    @PostMapping("/{id}/finalizar")
+//    public ResponseEntity<PedidoResponseDTO> finalizar(@PathVariable Long id) {
+//        return ResponseEntity.ok(service.finalizarPedido(id));
+//    }
 
     @PostMapping("/{id}/entregar")
     public ResponseEntity<PedidoResponseDTO> entregar(@PathVariable Long id) {

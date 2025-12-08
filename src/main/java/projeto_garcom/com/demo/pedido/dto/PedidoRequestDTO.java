@@ -8,7 +8,7 @@ import java.util.List;
 
 public record PedidoRequestDTO(
         Integer numero,
-        Long clienteId,
+        String clienteNome,
         Long contaId,
         List<ItemPedidoRequestDTO> itens,
         StatusPedido statusPedido

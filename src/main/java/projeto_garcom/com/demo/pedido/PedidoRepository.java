@@ -10,4 +10,9 @@ import java.util.List;
 public interface PedidoRepository extends JpaRepository<PedidoEntity, Long>, JpaSpecificationExecutor<PedidoEntity> {
 
     List<PedidoEntity> findByStatus(StatusPedido statusPedido);
+
+    Object findByContaIdAndStatus(Long contaId, StatusPedido statusPedido);
+
+    List<PedidoEntity> findAllByContaIdAndStatus(Long contaId, StatusPedido status);
+
 }

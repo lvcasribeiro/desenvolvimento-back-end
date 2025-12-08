@@ -9,20 +9,27 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import projeto_garcom.com.demo.common.exceptions.InvalidEntityException;
 import projeto_garcom.com.demo.common.exceptions.NotFoundException;
+import projeto_garcom.com.demo.conta.dto.ContaDTO;
 import projeto_garcom.com.demo.conta.dto.ContaRequestDTO;
+import projeto_garcom.com.demo.conta.dto.ContaShowDTO;
 import projeto_garcom.com.demo.conta.dto.ContaUpdateDTO;
 import projeto_garcom.com.demo.mesa.MesaEntity;
 import projeto_garcom.com.demo.mesa.MesaRepository;
 import projeto_garcom.com.demo.mesa.MesaService;
 import projeto_garcom.com.demo.pagamento.PagamentoEntity;
+import projeto_garcom.com.demo.pagamento.PagamentoMapper;
 import projeto_garcom.com.demo.pagamento.PagamentoRepository;
+import projeto_garcom.com.demo.pagamento.PagamentoService;
+import projeto_garcom.com.demo.pagamento.dto.PagamentoRequestDTO;
 import projeto_garcom.com.demo.pedido.PedidoEntity;
 import projeto_garcom.com.demo.pedido.PedidoRepository;
+import projeto_garcom.com.demo.pedido.StatusPedido;
 import projeto_garcom.com.demo.usuario.TipoUsuarioEnum;
 import projeto_garcom.com.demo.usuario.UsuarioEntity;
 import projeto_garcom.com.demo.usuario.UsuarioRepository;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -36,6 +43,8 @@ public class ContaService {
     private final UsuarioRepository usuarioRepository;
     private final PedidoRepository pedidoRepository;
     private final MesaService mesaService;
+    private final PagamentoService pagamentoService;
+    private final PagamentoMapper pagamentoMapper;
 
     public Page<ContaEntity> buscarContas(int page, int perPage, String nome) {
         Pageable pageable = PageRequest.of(Math.max(page - 1, 0), perPage);
@@ -122,5 +131,83 @@ public class ContaService {
         contaRepository.save(conta);
 
         return total;
+    }
+
+    @Transactional
+    public ContaShowDTO finalizarConta(Long contaId, PagamentoRequestDTO pagamentoRequest) {
+
+        ContaEntity conta = contaRepository.findById(contaId)
+                .orElseThrow(() -> new NotFoundException("Conta não encontrada."));
+
+        if (!conta.getAberta()) {
+            throw new InvalidEntityException("Conta já está fechada.");
+        }
+
+        List<PedidoEntity> pedidosEntregues =
+                pedidoRepository.findAllByContaIdAndStatus(contaId, StatusPedido.ENTREGUE);
+
+        if (pedidosEntregues.isEmpty()) {
+            throw new InvalidEntityException("Não há pedidos entregues para finalizar a conta.");
+        }
+
+        // 2) Calcular total dos pedidos
+        BigDecimal total = pedidosEntregues.stream()
+                .flatMap(p -> p.getItensPedido().stream())
+                .map(item -> item.getItemCardapio().getPreco()
+                        .multiply(BigDecimal.valueOf(item.getQuantidade())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        conta.setTotal(total);
+
+        // 3) Criar e associar pagamento
+        PagamentoEntity pagamento = pagamentoMapper.toEntityFromRequest(pagamentoRequest);
+        pagamento.setConta(conta);
+        pagamentoRepository.save(pagamento);
+
+        conta.getPagamentos().add(pagamento);
+
+        // 4) Verificar se total pago cobre o total da conta
+        BigDecimal totalPago = conta.getPagamentos().stream()
+                .map(PagamentoEntity::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (totalPago.compareTo(total) < 0) {
+            throw new InvalidEntityException(
+                    "Pagamento insuficiente. Faltam: " + total.subtract(totalPago)
+            );
+        }
+
+        conta.setAberta(false);
+
+        MesaEntity mesa = conta.getMesa();
+        mesa.setDisponivel(true);
+
+        return contaMapper.toShowDTO(contaRepository.save(conta));
+    }
+
+    public ContaShowDTO pagar(Long contaId, PagamentoRequestDTO dto) {
+
+        ContaEntity conta = contaRepository.findById(contaId)
+                .orElseThrow(() -> new RuntimeException("Conta não encontrada"));
+
+        PagamentoEntity pagamento = PagamentoEntity.builder()
+                .valor(dto.valor())
+                .tipoPagamento(dto.tipoPagamento())
+                .numero(dto.numero())
+                .nroTransacao(dto.nroTransacao())
+                .conta(conta)
+                .build();
+
+        pagamentoRepository.save(pagamento);
+
+        conta.getPagamentos().add(pagamento);
+
+        BigDecimal totalPago = conta.getPagamentos().stream()
+                .map(PagamentoEntity::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        contaRepository.save(conta);
+
+        return contaMapper.toShowDTO(conta);
     }
 }

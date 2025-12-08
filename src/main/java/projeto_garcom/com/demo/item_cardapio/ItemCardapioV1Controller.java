@@ -31,13 +31,13 @@ public class ItemCardapioV1Controller {
         return ResponseEntity.ok(service.atualizar(id, dto));
     }
 
-    @PatchMapping("/{id}/ativar")
+    @PutMapping("/{id}/ativar")
     public ResponseEntity<Void> ativar(@PathVariable Long id) {
         service.ativar(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/desativar")
+    @PutMapping("/{id}/desativar")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
         service.desativar(id);
         return ResponseEntity.noContent().build();

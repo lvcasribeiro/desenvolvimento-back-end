@@ -24,6 +24,7 @@ public interface PedidoMapper {
     @Mapping(source = "cliente.id", target = "clienteId")
     @Mapping(source = "conta.id", target = "contaId")
     @Mapping(source = "itensPedido", target = "itens")
+    @Mapping(source = "status", target = "status")
     PedidoResponseDTO toResponse(PedidoEntity pedido);
 
     @Mapping(source = "itemCardapio.nome", target = "nomeItem")

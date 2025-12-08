@@ -2,6 +2,9 @@ package projeto_garcom.com.demo.pagamento;
 
 import jakarta.persistence.*;
 import lombok.*;
+import projeto_garcom.com.demo.conta.ContaEntity;
+
+import java.math.BigDecimal;
 
 @Setter
 @Getter
@@ -24,4 +27,11 @@ public class PagamentoEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_pagamento", nullable = false)
     private PagamentoEnum tipoPagamento;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conta_id")
+    private ContaEntity conta;
+
+    @Column(name = "valor", nullable = false)
+    private BigDecimal valor;
 }

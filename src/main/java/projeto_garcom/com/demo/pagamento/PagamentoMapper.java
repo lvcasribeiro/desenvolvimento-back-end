@@ -13,7 +13,7 @@ public interface PagamentoMapper {
     PagamentoEntity toEntityFromRequest(PagamentoRequestDTO pagamentoRequestDTO);
 
     PagamentoDTO entityToPagamentoDTO(PagamentoEntity pagamento);
-    PagamentoShowDTO entityToPagamentoShowDTO(PagamentoEntity pagamento);
+    PagamentoShowDTO entityToPagamentoShowDTO(PagamentoEntity entity);
 
     @Mapping(target = "id", ignore = true)
     void updatePagamentoFromUpdateDTO(PagamentoUpdateDTO dto, @MappingTarget PagamentoEntity pagamento);
